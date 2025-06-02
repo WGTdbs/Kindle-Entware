@@ -3,12 +3,6 @@
 TYPE='generic'
 #TYPE='alternative'
 
-#|---------|-----------------------|---------------|---------------|---------------------|-------------------|-------------------|----------------------|-------------------|
-#| ARCH    | aarch64-k3.10         | armv5sf-k3.2  | armv7sf-k2.6  | armv7sf-k3.2        | mipselsf-k3.4     | mipssf-k3.4       | x64-k3.2             | x86-k2.6          |
-#| LOADER  | ld-linux-aarch64.so.1 | ld-linux.so.3 | ld-linux.so.3 | ld-linux.so.3       | ld.so.1           | ld.so.1           | ld-linux-x86-64.so.2 | ld-linux.so.2     |
-#| GLIBC   | 2.27                  | 2.27          | 2.23          | 2.27                | 2.27              | 2.27              | 2.27                 | 2.23              |
-#|---------|-----------------------|---------------|---------------|---------------------|-------------------|-------------------|----------------------|-------------------|
-
 unset LD_LIBRARY_PATH
 unset LD_PRELOAD
 
@@ -65,6 +59,7 @@ done
 
 [ -f /etc/localtime ] && ln -sf /etc/localtime /opt/etc/localtime
 
+cp /opt/bin/opkg /bin
 
 echo 'Info: Finish!'
 echo 'Info: Kindle-Entware was successfully initialized.'
