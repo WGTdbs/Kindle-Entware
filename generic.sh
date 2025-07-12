@@ -1,71 +1,44 @@
 #!/bin/sh
 
-TYPE='generic'
-#TYPE='alternative'
-
-unset LD_LIBRARY_PATH
-unset LD_PRELOAD
-
+# Kindle Paperwhite 3的架构为ARMv7，内核版本为3.0.2
 ARCH=armv7sf-k2.6
-LOADER=ld-linux.so.3
-GLIBC=2.23
 
-echo 'Info: Checking for prerequisites and creating folders...'
-if [ -d /opt ]; then
-    echo 'Warning: Folder /opt exists!'
-else
-    mkdir /opt
-fi
-# no need to create many folders. entware-opt package creates most
-for folder in bin etc lib/opkg tmp var/lock
-do
-  if [ -d "/opt/$folder" ]; then
-    echo "Warning: Folder /opt/$folder exists!"
-    echo 'Warning: If something goes wrong please clean /opt folder and try again.'
-  else
-    mkdir -p /opt/$folder
-  fi
-done
+# 定义日志函数
+POS=1
+log() {
+  echo "${1}" >> /mnt/us/entware_install.log
+  eips 0 $POS "${1}"
+  POS=$((POS+1))
+}
 
-echo 'Info: Opkg package manager deployment...'
+# 定义安装目录
+INSTALL_DIR=/mnt/us/entware
+
+log 'Info: Checking for prerequisites and creating folders...'
+# 创建安装目录
+mkdir -p $INSTALL_DIR/bin
+mkdir -p $INSTALL_DIR/etc
+mkdir -p $INSTALL_DIR/lib/opkg
+mkdir -p $INSTALL_DIR/tmp
+mkdir -p $INSTALL_DIR/var/lock
+
+log 'Info: Opkg package manager deployment...'
 URL=http://bin.entware.net/${ARCH}/installer
-wget $URL/opkg -O /opt/bin/opkg
-chmod 755 /opt/bin/opkg
-wget $URL/opkg.conf -O /opt/etc/opkg.conf
+wget $URL/opkg -O $INSTALL_DIR/bin/opkg
+chmod 755 $INSTALL_DIR/bin/opkg
+wget $URL/opkg.conf -O $INSTALL_DIR/etc/opkg.conf
 
-echo 'Info: Basic packages installation...'
-/opt/bin/opkg update
-if [ $TYPE = 'alternative' ]; then
-  /opt/bin/opkg install busybox
-fi
-/opt/bin/opkg install entware-opt
+# 修改opkg.conf中的安装路径
+sed -i "s:/opt:$INSTALL_DIR:g" $INSTALL_DIR/etc/opkg.conf
 
-# Fix for multiuser environment
-chmod 777 /opt/tmp
+log 'Info: Basic packages installation...'
+$INSTALL_DIR/bin/opkg update
+$INSTALL_DIR/bin/opkg install entware-opt
 
-for file in passwd group shells shadow gshadow; do
-  if [ $TYPE = 'generic' ]; then
-    if [ -f /etc/$file ]; then
-      ln -sf /etc/$file /opt/etc/$file
-    else
-      [ -f /opt/etc/$file.1 ] && cp /opt/etc/$file.1 /opt/etc/$file
-    fi
-  else
-    if [ -f /opt/etc/$file.1 ]; then
-      cp /opt/etc/$file.1 /opt/etc/$file
-    fi
-  fi
-done
+# 修复多用户环境的权限问题
+chmod 777 $INSTALL_DIR/tmp
 
-[ -f /etc/localtime ] && ln -sf /etc/localtime /opt/etc/localtime
-
-cp /opt/bin/opkg /bin
-
-echo 'Info: Finish!'
-echo 'Info: Kindle-Entware was successfully initialized.'
-echo 'Info: Add opt/bin & opt/sbin to $PATH variable'
-echo 'Info: Add "opt/etc/init.d/rc.unslung start" to startup script for Kindle-Entware services to start'
-
-echo 'Info: Found a Bug? Please report at wuguantingdanbishi@outlook.com'
-echo 'Follow my BiliBili:wuguantingdanbish'
-echo 'Made by:Wuguanting'
+log 'Info: Congratulations!'
+log 'Info: If there are no errors above then Entware was successfully initialized.'
+log "Info: Add $INSTALL_DIR/bin & $INSTALL_DIR/sbin to \$PATH variable"
+log 'Info: Found a Bug? Please report at https://github.com/Entware/Entware/issues'
